@@ -38,7 +38,6 @@ libnftnl_la_SOURCES = utils.c		\
 		      expr/limit.c	\
 			  expr/ndpi.c	\
 		      expr/log.c	\
-			  expr/abcde.c	\
 		      expr/lookup.c	\
 		      expr/dynset.c	\
 		      expr/immediate.c	\
