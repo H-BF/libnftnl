@@ -10,6 +10,7 @@ all:
 install:
 
 install_deb:
+	install -v libnftnl.pc ./debian/opt/hbf/lib/pkgconfig
 	dpkg-deb --build debian $(PKG_NAME)-$(PKG_VER).deb || exit 1
 
 clean:
