@@ -10,12 +10,13 @@ function clean() {
 
 function configure() {
   ./autogen.sh
-  ./configure --prefix=$INSTALL_DIR
+  ./configure --prefix=$INSTALL_DIR --program-prefix=/opt/hbf/
 }
 
 function build() {
   make all
   make install
+  make -C $PKG_DIR install_deb
 }
 
 clean
