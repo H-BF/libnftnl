@@ -10,7 +10,7 @@ function clean() {
 
 function configure() {
   ./autogen.sh
-  ./configure --prefix=$INSTALL_DIR --program-prefix=/opt/hbf/
+  ./configure --prefix=$INSTALL_DIR --with-pkgdst=/opt/hbf
 }
 
 function build() {
