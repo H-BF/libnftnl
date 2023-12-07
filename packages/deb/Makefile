@@ -11,7 +11,15 @@ install:
 
 install_deb:
 	install -v libnftnl.pc ./debian/opt/hbf/lib/pkgconfig
-	dpkg-deb --build debian $(PKG_NAME)-$(PKG_VER).deb || exit 1
+	fpm \
+	-s dir -t deb \
+	-p libnftnl-$(STRIPPED_VERSION)-any.deb \
+	--name libnftnl \
+	--version $(STRIPPED_VERSION) \
+	--architecture all \
+	--description "libnftnl library that support ndpi." \
+	--maintainer "Kalashnikov V. kalashnikov.v24@wb.ru" \
+	./debian/opt/hbf=/opt/
 
 clean:
 	rm -rf *.deb
