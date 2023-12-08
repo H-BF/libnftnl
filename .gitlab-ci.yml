@@ -1,0 +1,44 @@
+variables:
+  NEXUS_URL: "http://swarm-nexus-ingress-controller.swarm-nexus.svc.k8s.prod-dl/repository"
+  NEXUS_REPO: "swarm-apt-hosted"
+
+stages:
+  - build-deb
+  - push-deb
+
+.template_default:
+  image: harbor.wildberries.ru/swarm/swarm/swarmops/docker-factory/deb-builder:feature-swarm-235-360356a8
+  before_script:
+    - export STRIPPED_VERSION="${VERSION#v}"
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^feature-.*$/ || $CI_COMMIT_BRANCH =~ /^dev$/
+      variables:
+        VERSION: 0-$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
+    - if: "$CI_COMMIT_TAG =~ /^v([0-9]+)\\.([0-9]+)\\.([0-9]+)-?([a-zA-Z0-9\\.]*)\\+?([a-zA-Z0-9\\.]*)$/"
+      variables:
+        VERSION: $CI_COMMIT_TAG-$CI_COMMIT_SHORT_SHA
+  tags:
+    - swarm
+
+build:
+  stage: build-deb
+  extends: .template_default
+  script:
+    - apt install -y asciidoc
+    - chmod -R 755 .
+    - ./install.sh 
+    - mv ./packages/deb/libnftnl-${STRIPPED_VERSION}-any.deb .
+  artifacts:
+    paths:
+      - "*.deb"
+
+push:
+  stage: push-deb
+  extends: .template_default
+  dependencies:
+    - build
+  script:
+    - ls -lah
+    - 'curl -X POST -u "$NEXUS_USER:$NEXUS_PASSWORD" -H "Content-Type: multipart/form-data; charset=utf-8" --data-binary "@libnftnl-${STRIPPED_VERSION}-any.deb" "$NEXUS_URL/$NEXUS_REPO/"'
+  variables:
+    GIT_STRATEGY: none
