@@ -10,7 +10,6 @@ all:
 install:
 
 install_deb:
-	install -v libnftnl.pc ./debian/opt/hbf/lib/pkgconfig
 	fpm \
 	-s dir -t deb \
 	-p libnftnl-$(STRIPPED_VERSION)-any.deb \
