@@ -1,6 +1,6 @@
 # libnftnl pkg-config file
 
-prefix=@prefix@
+prefix=@pkgdst@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
