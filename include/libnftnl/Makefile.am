@@ -10,4 +10,5 @@ pkginclude_HEADERS = batch.h		\
 		     ruleset.h		\
 		     common.h		\
 		     udata.h		\
-		     gen.h
+		     gen.h			\
+			 ndpi.h

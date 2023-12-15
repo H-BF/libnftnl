@@ -4,7 +4,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <linux/netfilter/nf_tables.h>
-#include <linux/netfilter/nf_ndpi.h>
+#include <libnftnl/ndpi.h>
 
 #include "internal.h"
 #include <libmnl/libmnl.h>
@@ -12,7 +12,7 @@
 #include <libnftnl/rule.h>
 
 struct nftnl_expr_ndpi {
-    //NDPI_PROTOCOL_BITMASK flags;
+    NDPI_PROTOCOL_BITMASK proto;
     uint16_t flags;
 	char*	hostname;
 };
@@ -34,6 +34,9 @@ static int nftnl_expr_ndpi_set(struct nftnl_expr *e, uint16_t type,
 	case NFTNL_EXPR_NDPI_FLAGS:
 		memcpy(&ndpi->flags, data, sizeof(ndpi->flags));
 		break;
+	case NFTNL_EXPR_NDPI_PROTO:
+		memcpy(&ndpi->proto, data, sizeof(ndpi->proto));
+		break;
 	default:
 		return -1;
 	}
@@ -53,6 +56,9 @@ nftnl_expr_ndpi_get(const struct nftnl_expr *e, uint16_t type,
 	case NFTNL_EXPR_NDPI_FLAGS:
 		*data_len = sizeof(ndpi->flags);
 		return &ndpi->flags;
+	case NFTNL_EXPR_NDPI_PROTO:
+		*data_len = sizeof(ndpi->proto);
+		return &ndpi->proto;
 	}
 	return NULL;
 }
@@ -74,6 +80,10 @@ static int nftnl_expr_ndpi_cb(const struct nlattr *attr, void *data)
 		if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0)
 			abi_breakage();
 		break;
+	case NFTA_NDPI_PROTO:
+		if (mnl_attr_validate(attr, MNL_TYPE_BINARY) < 0)
+			abi_breakage();
+		break;
 	}
 
 	tb[type] = attr;
@@ -89,6 +99,8 @@ nftnl_expr_ndpi_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
 		mnl_attr_put_strz(nlh, NFTA_NDPI_HOSTNAME, ndpi->hostname);
 	if (e->flags & (1 << NFTNL_EXPR_NDPI_FLAGS))
 		mnl_attr_put_u16(nlh, NFTA_NDPI_FLAGS, htonl(ndpi->flags));
+	if(e->flags & (1 << NFTNL_EXPR_NDPI_PROTO))
+		mnl_attr_put(nlh, NFTA_NDPI_PROTO, sizeof(ndpi->proto), &ndpi->proto);
 }
 
 static int
@@ -113,25 +125,17 @@ nftnl_expr_ndpi_parse(struct nftnl_expr *e, struct nlattr *attr)
 		ndpi->flags = ntohl(mnl_attr_get_u16(tb[NFTA_NDPI_FLAGS]));
 		e->flags |= (1 << NFTNL_EXPR_NDPI_FLAGS);
 	}
+	if (tb[NFTA_NDPI_PROTO]) {
+		memcpy(&ndpi->proto,
+			mnl_attr_get_payload(tb[NFTA_NDPI_PROTO]),
+			mnl_attr_get_payload_len(tb[NFTA_NDPI_PROTO])
+		);
+		e->flags |= (1 << NFTNL_EXPR_NDPI_PROTO);
+	}
 
 	return 0;
 }
 
-// #define NFT_NDPI_FLAG_INVERT        0x1U
-// #define NFT_NDPI_FLAG_ERROR         0x2U
-// #define NFT_NDPI_FLAG_M_PROTO       0x4U
-// #define NFT_NDPI_FLAG_P_PROTO       0x8U
-// #define NFT_NDPI_FLAG_HAVE_MASTER   0x10U
-// #define NFT_NDPI_FLAG_HOST          0x20U
-// #define NFT_NDPI_FLAG_RE            0x40U
-// #define NFT_NDPI_FLAG_EMPTY         0x80U
-// #define NFT_NDPI_FLAG_INPROGRESS    0x100U
-// #define NFT_NDPI_FLAG_JA3S          0x200U
-// #define NFT_NDPI_FLAG_JA3C          0x400U
-// #define NFT_NDPI_FLAG_TLSFP         0x800U
-// #define NFT_NDPI_FLAG_TLSV          0x1000U
-// #define NFT_NDPI_FLAG_UNTRACKED     0x2000U
-// #define NFT_NDPI_FLAG_PROTOCOL     0x4000U
 
 static int
 nftnl_expr_ndpi_snprintf(char *buf, size_t remain,
@@ -139,6 +143,11 @@ nftnl_expr_ndpi_snprintf(char *buf, size_t remain,
 {
 	struct nftnl_expr_ndpi *ndpi = nftnl_expr_data(e);
 	int ret, offset = 0;
+
+	char *prot_short_str[NDPI_NUM_BITS] = { /*NDPI_PROTOCOL_SHORT_STRING,*/ NULL, };
+	char  prot_disabled[NDPI_NUM_BITS+1] = { 0, };
+
+	nft_ndpi_get_protos(prot_short_str, prot_disabled);
 
 	if (e->flags & (1 << NFTNL_EXPR_NDPI_HOSTNAME)) {
 		ret = snprintf(buf, remain, "host %s ", ndpi->hostname);
@@ -155,14 +164,18 @@ nftnl_expr_ndpi_snprintf(char *buf, size_t remain,
 		}
 		if (ndpi->flags & NFT_NDPI_FLAG_INPROGRESS) {
 			ret = snprintf(buf + offset, remain, "%sndpi inprogress ",cinv);
+			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
             for (l = i = 0; i < NDPI_NUM_BITS; i++) {
-                // if (prot_short_str[i] && !prot_disabled[i] && NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags, i) != 0)
-                //     printf("%s%s",l++ ? ",":"", prot_short_str[i]);
+                if (prot_short_str[i] && !prot_disabled[i] && NDPI_COMPARE_PROTOCOL_TO_BITMASK(ndpi->proto, i) != 0){
+                    ret = snprintf(buf + offset, remain, "%s%s", l++ ? "," : "", prot_short_str[i]);
+					SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+				}
             }
             if(l == 0) {
                 ret = snprintf(buf + offset, remain, "no protos ");
+				SNPRINTF_BUFFER_SIZE(ret, remain, offset);
             }
-			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+
             return offset;
 		}
 		if (ndpi->flags & NFT_NDPI_FLAG_UNTRACKED) {
@@ -176,13 +189,13 @@ nftnl_expr_ndpi_snprintf(char *buf, size_t remain,
             return offset;
 		}
 
-        // for (t = c = i = 0; i < NDPI_NUM_BITS; i++) {
-		//     if (!prot_short_str[i] || prot_disabled[i] || !strncmp(prot_short_str[i],"badproto_",9)) continue;
-		//     t++;
-		//     if (NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags, i) != 0) c++;
-        // }
-        // ret = snprintf(buf + offset, remain, "%sndpi ", cinv);
-		// SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+        for (t = c = i = 0; i < NDPI_NUM_BITS; i++) {
+		    if (!prot_short_str[i] || prot_disabled[i] || !strncmp(prot_short_str[i], "badproto_", 9)) continue;
+		    t++;
+		    if (NDPI_COMPARE_PROTOCOL_TO_BITMASK(ndpi->proto, i) != 0) c++;
+        }
+        ret = snprintf(buf + offset, remain, "%sndpi ", cinv);
+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 
 		if ((ndpi->flags & NFT_NDPI_FLAG_M_PROTO) && !(ndpi->flags & NFT_NDPI_FLAG_P_PROTO)) {
 			ret = snprintf(buf + offset, remain, "match-master ");
@@ -192,13 +205,19 @@ nftnl_expr_ndpi_snprintf(char *buf, size_t remain,
 			ret = snprintf(buf + offset, remain, "match-proto ");
 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
 		}
-        // if(!c) return;
+        if(!c){
+			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+			return offset;
+		}
 
-	    // if( c == t-1 && 
-	    //     !NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags,NDPI_PROTOCOL_UNKNOWN) ) {
-	    // 	printf(" all protocols");
-	    // 	return;
-	    // }
+		if( c == t-1 &&
+			!NDPI_COMPARE_PROTOCOL_TO_BITMASK(ndpi->proto, NDPI_PROTOCOL_UNKNOWN) )
+		{
+			ret = snprintf(buf + offset, remain, " all protocols");
+			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+			return offset;
+		}
+
         if (ndpi->flags & NFT_NDPI_FLAG_JA3S) {
 			ret = snprintf(buf + offset, remain, " %sja3s ",cinv);
 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
@@ -212,21 +231,27 @@ nftnl_expr_ndpi_snprintf(char *buf, size_t remain,
             ret = snprintf(buf + offset, remain, " %stlsv ",cinv);
 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
         }else{
-             //printf(" protocol%s ",c > 1 ? "s":"");
+            ret = snprintf(buf + offset, remain, " protocol%s ", c > 1 ? "s" : "");
+			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
         }
-        // if(c > t/2 + 1) {
-	    //     printf("all");
-	    //     for (i = 1; i < NDPI_NUM_BITS; i++) {
-        //             if (prot_short_str[i] && !prot_disabled[i] && NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags, i) == 0)
-		//     	printf(",-%s", prot_short_str[i]);
-	    //     }
-	    //     return;
-	    // }
+        if(c > t/2 + 1) {
+	        ret = snprintf(buf + offset, remain, "all");
+			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+	        for (i = 1; i < NDPI_NUM_BITS; i++) {
+                if (prot_short_str[i] && !prot_disabled[i] && NDPI_COMPARE_PROTOCOL_TO_BITMASK(ndpi->proto, i) == 0){
+					ret = snprintf(buf + offset, remain, ",-%s", prot_short_str[i]);
+					SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+				}
+	        }
+	        return offset;
+	    }
 
-        // for (l = i = 0; i < NDPI_NUM_BITS; i++) {
-        //         if (prot_short_str[i] && !prot_disabled[i] && NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags, i) != 0)
-        //                 printf("%s%s",l++ ? ",":"", prot_short_str[i]);
-        // }
+        for (l = i = 0; i < NDPI_NUM_BITS; i++) {
+            if (prot_short_str[i] && !prot_disabled[i] && NDPI_COMPARE_PROTOCOL_TO_BITMASK(ndpi->proto, i) != 0){
+				ret = snprintf(buf + offset, remain, "%s%s", l++ ? "," : "", prot_short_str[i]);
+				SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+			}
+        }
 	}
 
 	return offset;
