@@ -41,6 +41,6 @@ push:
     - build
   script:
     - ls -lah
-    - 'curl -X POST -u "$NEXUS_USER:$NEXUS_PASSWORD" -H "Content-Type: multipart/form-data; charset=utf-8" --data-binary "@libnftnl-${STRIPPED_VERSION}-any.deb" "$NEXUS_URL/$NEXUS_REPO/"'
+    - 'curl -vvv -X POST -u "$NEXUS_USER:$NEXUS_PASSWORD" -H "Content-Type: multipart/form-data; charset=utf-8" --data-binary "@libnftnl-${STRIPPED_VERSION}-any.deb" "$NEXUS_URL/$NEXUS_REPO/"'
   variables:
     GIT_STRATEGY: none
