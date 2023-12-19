@@ -34,7 +34,7 @@ regular_CFLAGS="-Wall -Waggregate-return -Wmissing-declarations \
 AC_SUBST([regular_CPPFLAGS])
 AC_SUBST([regular_CFLAGS])
 
-AC_ARG_WITH([pkgdst], [AS_HELP_STRING([--with-pkgdst=DIR], [Where the deb package will be installed. By default DIR=prefix])], [pkgdst=$withval], [pkgdst=$prefix])
+AC_ARG_WITH([pkgdst], [AS_HELP_STRING([--with-pkgdst=DIR], [Where the deb package will be installed. By default DIR=prefix])], [pkgdst=$withval], [pkgdst=/usr/local])
 AC_SUBST([pkgdst])
 
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile include/libnftnl/Makefile include/linux/Makefile include/linux/netfilter/Makefile examples/Makefile tests/Makefile libnftnl.pc doxygen.cfg])
