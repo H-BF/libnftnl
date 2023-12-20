@@ -1,6 +1,11 @@
 SUBDIRS := $(shell find debian/* -maxdepth 0 -type d ! -name DEBIAN)
 PKG_NAME := libnftnl
-PKG_VER := $(shell git tag |tail -n 1 |cut -d "-" -f 2)
+GIT_LAST_TAG := $(shell git tag |tail -n 1 |cut -d "-" -f 2)
+VERSION := $(or ${STRIPPED_VERSION},$(shell git describe --tags --exact-match 2> /dev/null | cut -d "-" -f 2))
+
+ifeq ($(strip $(VERSION)),)
+	VERSION=$(GIT_LAST_TAG)-$(shell git symbolic-ref -q --short HEAD || git rev-parse --short HEAD)
+endif
 
 
 .PHONY: all install clean install_deb
@@ -12,9 +17,9 @@ install:
 install_deb:
 	fpm \
 	-s dir -t deb \
-	-p libnftnl-$(STRIPPED_VERSION)-any.deb \
-	--name libnftnl \
-	--version $(STRIPPED_VERSION) \
+	-p $(PKG_NAME)-$(VERSION)-any.deb \
+	--name $(PKG_NAME) \
+	--version $(VERSION) \
 	--architecture all \
 	--description "libnftnl library that support ndpi." \
 	--maintainer "Kalashnikov V. kalashnikov.v24@wb.ru" \
