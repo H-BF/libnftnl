@@ -98,7 +98,7 @@ nftnl_expr_ndpi_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
 	if (e->flags & (1 << NFTNL_EXPR_NDPI_HOSTNAME))
 		mnl_attr_put_strz(nlh, NFTA_NDPI_HOSTNAME, ndpi->hostname);
 	if (e->flags & (1 << NFTNL_EXPR_NDPI_FLAGS))
-		mnl_attr_put_u16(nlh, NFTA_NDPI_FLAGS, htonl(ndpi->flags));
+		mnl_attr_put_u16(nlh, NFTA_NDPI_FLAGS, htons(ndpi->flags));
 	if(e->flags & (1 << NFTNL_EXPR_NDPI_PROTO))
 		mnl_attr_put(nlh, NFTA_NDPI_PROTO, sizeof(ndpi->proto), &ndpi->proto);
 }
