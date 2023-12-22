@@ -29,7 +29,7 @@ build:
     - apt install -y asciidoc
     - chmod -R 755 .
     - ./install.sh 
-    - mv ./packages/deb/libnftnl-${STRIPPED_VERSION}-any.deb .
+    - mv ./packages/deb/swarm-libnftnl-${STRIPPED_VERSION}-any.deb .
   artifacts:
     paths:
       - "*.deb"
