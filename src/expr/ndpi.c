@@ -13,7 +13,7 @@
 
 struct nftnl_expr_ndpi {
     NDPI_PROTOCOL_BITMASK proto;
-    uint16_t flags;
+    uint32_t flags;
 	char*	hostname;
 };
 
@@ -77,7 +77,7 @@ static int nftnl_expr_ndpi_cb(const struct nlattr *attr, void *data)
 			abi_breakage();
 		break;
 	case NFTA_NDPI_FLAGS:
-		if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0)
+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
 			abi_breakage();
 		break;
 	case NFTA_NDPI_PROTO:
@@ -98,7 +98,7 @@ nftnl_expr_ndpi_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
 	if (e->flags & (1 << NFTNL_EXPR_NDPI_HOSTNAME))
 		mnl_attr_put_strz(nlh, NFTA_NDPI_HOSTNAME, ndpi->hostname);
 	if (e->flags & (1 << NFTNL_EXPR_NDPI_FLAGS))
-		mnl_attr_put_u16(nlh, NFTA_NDPI_FLAGS, htons(ndpi->flags));
+		mnl_attr_put_u32(nlh, NFTA_NDPI_FLAGS, htonl(ndpi->flags));
 	if(e->flags & (1 << NFTNL_EXPR_NDPI_PROTO))
 		mnl_attr_put(nlh, NFTA_NDPI_PROTO, sizeof(ndpi->proto), &ndpi->proto);
 }
@@ -122,7 +122,7 @@ nftnl_expr_ndpi_parse(struct nftnl_expr *e, struct nlattr *attr)
 		e->flags |= (1 << NFTNL_EXPR_NDPI_HOSTNAME);
 	}
 	if (tb[NFTA_NDPI_FLAGS]) {
-		ndpi->flags = ntohl(mnl_attr_get_u16(tb[NFTA_NDPI_FLAGS]));
+		ndpi->flags = ntohl(mnl_attr_get_u32(tb[NFTA_NDPI_FLAGS]));
 		e->flags |= (1 << NFTNL_EXPR_NDPI_FLAGS);
 	}
 	if (tb[NFTA_NDPI_PROTO]) {

@@ -7,7 +7,7 @@
 #include <getopt.h>
 #include <stdio.h>
 
-#define NDPI_GIT_RELEASE "4.3.0-8-6ae5394"
+#define NDPI_GIT_RELEASE "4.9.0-4813-90514cb2"
 
 #define NFT_NDPI_FLAG_INVERT        0x1U
 #define NFT_NDPI_FLAG_ERROR         0x2U
@@ -17,12 +17,13 @@
 #define NFT_NDPI_FLAG_HOST          0x20U
 #define NFT_NDPI_FLAG_RE            0x40U
 #define NFT_NDPI_FLAG_EMPTY         0x80U
-#define NFT_NDPI_FLAG_INPROGRESS    0x100U
-#define NFT_NDPI_FLAG_JA3S          0x200U
-#define NFT_NDPI_FLAG_JA3C          0x400U
-#define NFT_NDPI_FLAG_TLSFP         0x800U
-#define NFT_NDPI_FLAG_TLSV          0x1000U
-#define NFT_NDPI_FLAG_UNTRACKED     0x2000U
+#define NFT_NDPI_FLAG_PROTO         0x100U
+#define NFT_NDPI_FLAG_INPROGRESS    0x200U
+#define NFT_NDPI_FLAG_JA3S          0x400U
+#define NFT_NDPI_FLAG_JA3C          0x800U
+#define NFT_NDPI_FLAG_TLSFP         0x1000U
+#define NFT_NDPI_FLAG_TLSV          0x2000U
+#define NFT_NDPI_FLAG_UNTRACKED     0x4000U
 
 #define NFT_NDPI_PROTOCMD_LEN_MAX   128
 
