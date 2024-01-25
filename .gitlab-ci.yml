@@ -7,7 +7,7 @@ stages:
   - push-deb
 
 .template_default:
-  image: harbor.wildberries.ru/swarm/swarm/swarmops/docker-factory/deb-builder:feature-swarm-235-360356a8
+  image: harbor.wildberries.ru/swarm/swarm/swarmops/docker-factory/deb-builder:v1-0-0-11f08eb1
   before_script:
     - export STRIPPED_VERSION="${VERSION#v}"
   rules:
