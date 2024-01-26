@@ -7,7 +7,7 @@
 #include <getopt.h>
 #include <stdio.h>
 
-#define NDPI_GIT_RELEASE "4.9.0-4813-90514cb2"
+#define NDPI_GIT_RELEASE "4.9"
 
 #define NFT_NDPI_FLAG_INVERT        0x1U
 #define NFT_NDPI_FLAG_ERROR         0x2U
@@ -83,6 +83,13 @@ enum nft_ndpi_error_codes
     NFT_NDPI_NO_KERNEL_MODULE,
     NFT_NDPI_NO_KERNEL_MODULE_VERSION,
     NFT_NDPI_KERNEL_MODULE_VERSION_MISSMATCH
+};
+
+__attribute__((unused)) static const char* nft_ndpi_error_reason[] = {
+	[NFT_NDPI_NO_ERR] = "No Errors",
+	[NFT_NDPI_NO_KERNEL_MODULE] = "Kernel module for the ndpi is not available",
+	[NFT_NDPI_NO_KERNEL_MODULE_VERSION] = "Failed to read version of the ndpi kernel module",
+	[NFT_NDPI_KERNEL_MODULE_VERSION_MISSMATCH] = "ndpi module version mismatch"
 };
 
 static inline int nft_ndpi_get_protos(char **prot_short_str, char* prot_disabled)
