@@ -1,6 +1,6 @@
   
 stages:
-  - push-deb
+  - build-deb
   - check approve
 
 .template_default:
