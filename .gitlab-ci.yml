@@ -1,0 +1,40 @@
+  
+stages:
+  - push-deb
+  - check approve
+
+.template_default:
+  image: harbor.wildberries.ru/swarm/swarm/swarmops/docker-factory/deb-builder:v1-0-0-11f08eb1
+  before_script:
+    - export STRIPPED_VERSION="${VERSION#v}"
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(feature|fix)-[a-z]+-\d+$/ || $CI_COMMIT_BRANCH =~ /^dev$/
+      variables:
+        VERSION: 0-$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
+    - if: "$CI_COMMIT_TAG =~ /^v([0-9]+)\\.([0-9]+)\\.([0-9]+)-?([a-zA-Z0-9\\.]*)\\+?([a-zA-Z0-9\\.]*)$/"
+      variables:
+        VERSION: $CI_COMMIT_TAG-$CI_COMMIT_SHORT_SHA
+  tags:
+    - dev
+    - docker
+    - linux
+
+
+
+build:
+  stage: build-deb
+  extends: .template_default
+  script:
+    - apt install -y asciidoc
+    - chmod -R 755 .
+    - ./install.sh 
+    - mv ./packages/deb/swarm-libnftnl-${STRIPPED_VERSION}-any.deb .
+  artifacts:
+    paths:
+      - "*.deb"
+
+
+variables:
+  NEXUS_URL: "http://swarm-nexus-ingress-controller.swarm-nexus.svc.k8s.prod-dl/repository"
+  NEXUS_REPO: "swarm-apt-hosted"
+
