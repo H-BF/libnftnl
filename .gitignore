@@ -42,3 +42,4 @@ tags
 #others
 .vscode
 *.deb
+packages/content/*

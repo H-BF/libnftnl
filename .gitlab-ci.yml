@@ -17,7 +17,8 @@ build:
     - export STRIPPED_VERSION="${VERSION#v}"
     - echo $STRIPPED_VERSION
   script:
-    - apt install -y asciidoc
-    - chmod -R 755 .
-    - ./install.sh 
+    - apt install -y asciidoc autoconf automake autogen
+    - ./autogen.sh
+    - ./configure '--with-pkgdst=/opt/swarm/' '--with-build-deb'
+    - make build-deb
     - mv ./packages/deb/swarm-libnftnl-${STRIPPED_VERSION}-any.deb .

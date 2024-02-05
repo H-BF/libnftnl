@@ -1,9 +1,0 @@
-Package: libnftnl
-Version: 1.2.6
-Architecture: all
-Maintainer: mat3x@mail.ru
-Installed-Size: 1364
-Depends:
-Section: misc
-Priority: optional
-Description: libnftnl library that support ndpi.
