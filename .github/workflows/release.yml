@@ -1,0 +1,47 @@
+name: release
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+rc[0-9]+'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup necessary package
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y libmnl-dev
+            sudo apt-get install ruby-dev build-essential
+            sudo gem i fpm -f
+      - name: Build deb & rpm packages
+        run: |
+            ./autogen.sh
+            ./configure '--with-pkgdst=/opt/swarm/' '--with-build-deb' '--with-build-rpm'
+            make build-deb
+            make build-rpm
+        env:
+          PKG_VERSION: ${{  github.ref_name  }}
+
+      - name: Prepare sha256 checksum's
+        run: |
+          cd packages/deb
+          sha256sum "$(ls | grep .deb)" > "$(ls | grep .deb)_sha256sum"
+          cd ../rpm
+          sha256sum "$(ls | grep .rpm)" > "$(ls | grep .rpm)_sha256sum"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: "packages/*"
+
+      - uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          draft: True
+          artifacts: "packages/deb/*.deb, packages/deb/*sha256sum, packages/rpm/*.rpm, packages/rpm/*sha256sum"
