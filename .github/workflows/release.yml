@@ -31,17 +31,24 @@ jobs:
 
       - name: Prepare sha256 checksum's
         run: |
-          cd packages/deb
-          sha256sum "$(ls | grep .deb)" > "$(ls | grep .deb)_sha256sum"
-          cd ../rpm
-          sha256sum "$(ls | grep .rpm)" > "$(ls | grep .rpm)_sha256sum"
+          export STRIPPED_VERSION="${PKG_VERSION#v}"
+          mv packages/deb/*.deb ${PACKAGE}-${STRIPPED_VERSION}-any.deb
+          mv packages/rpm/*.rpm ${PACKAGE}-${STRIPPED_VERSION}-any.rpm
+          for FILE in $(ls | grep -E '(deb|rpm)')
+          do
+            sha256sum "${FILE}" > "${FILE}_sha256sum"
+          done
+        env:
+          PACKAGE: swarm-libnftnl
+          PKG_VERSION: ${{  github.ref_name  }}
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          path: "packages/*"
+          path: './*'
 
       - uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           draft: True
-          artifacts: "packages/deb/*.deb, packages/deb/*sha256sum, packages/rpm/*.rpm, packages/rpm/*sha256sum"
+          artifacts: "*.deb, *sha256sum, *.rpm"

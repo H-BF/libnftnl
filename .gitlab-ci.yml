@@ -21,4 +21,4 @@ build:
     - ./autogen.sh
     - ./configure '--with-pkgdst=/opt/swarm/' '--with-build-deb'
     - make build-deb
-    - mv ./packages/deb/swarm-libnftnl-${STRIPPED_VERSION}-any.deb .
+    - mv ./packages/deb/*.${PACKAGE_TYPE} .
