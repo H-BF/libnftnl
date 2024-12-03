@@ -1,7 +1,7 @@
 # LIBNFTNL WITH nDPI SUPPORT
-This is a fork of the official [libnftnl](https://git.netfilter.org/libnftnl/) library extended to support [nDPI](https://gitlab-internal.wildberries.ru/swarm/swarm/ndpi) netfilter kernel module based on a fork from the [netfilter ndpi](https://github.com/vel21ripn/nDPI).
+This is a fork of the official [libnftnl](https://git.netfilter.org/libnftnl/) library extended to support [nDPI](https://github.com/H-BF/nDPI) netfilter kernel module based on a fork from the [netfilter ndpi](https://github.com/vel21ripn/nDPI).
 
-This library implements an additional netlink interface for connecting to the [ndpi kernel module](https://gitlab-internal.wildberries.ru/swarm/swarm/ndpi)
+This library implements an additional netlink interface for connecting to the [ndpi kernel module](https://github.com/H-BF/nDPI)
 
 ## How To Compile
 ### Prerequisites:
